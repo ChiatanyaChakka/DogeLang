@@ -1,5 +1,4 @@
 import re
-from symtable import SymbolTable
 import sys
 
 # regex for character groups
@@ -30,6 +29,8 @@ FLO = 'floating_point_literal'
 FLO_I = 'floating_intermediate'
 
 ZERO = "zero_literal"
+
+ERROR = "error_state"
 
 # Reserved items for symbol table
 keywords = ['int', 'float', 'boolean', 'string',
@@ -98,14 +99,14 @@ class Lexer:
                 elif op.match(currentChar):
                     self.state = OP
                 elif de.match(currentChar):
-                    self.tokens.append(self.symbolTable.index(currentChar), currentChar)
+                    self.tokens.append((self.symbolTable.index(currentChar), currentChar))
                     self.startPointer = self.searchPointer+1
                 elif ws.match(currentChar):
                     self.startPointer = self.searchPointer+1
                 elif currentChar=='#':
                     self.state = CMT
                 elif ic.match(currentChar):
-                    self.errorGenerator()
+                    self.state = ERROR
 
             elif self.state == CMT:
                 if currentChar != '\n':
@@ -119,22 +120,23 @@ class Lexer:
                     self.state = FLO_I
                 elif de.match(currentChar) or ws.match(currentChar) or op.match(currentChar)  or currentChar == '#':
                     if '0' in self.symbolTable:
-                        self.tokens.append(self.symbolTable.index('0'), '0') # Taking the index if 0 is already recorded in the table
+                        self.tokens.append((self.symbolTable.index('0'), '0')) # Taking the index if 0 is already recorded in the table
                     else:
-                        self.tokens.append(len(self.symbolTable), '0') # If it is the first time recording 0, then make a entry
-                        self.tokens.append('0')
+                        self.tokens.append((len(self.symbolTable), '0')) # If it is the first time recording 0, then make a entry
+                        self.symbolTable.append('0')
                     
                     # Processing the break character
                     if de.match(currentChar):
-                        self.tokens.append(self.symbolTable.index(currentChar), currentChar) # Adding the delimiter as a token into the list
+                        self.tokens.append((self.symbolTable.index(currentChar), currentChar)) # Adding the delimiter as a token into the list
+                        self.state = START
                     elif op.match(currentChar):
                         self.state = OP
                     elif currentChar == '#':
                         self.state = CMT
                     self.startPointer = self.searchPointer + 1
                     
-                else:
-                    self.errorGenerator() # If we encounter alphabets(Name error) or illegal characters(illegal character error)
+                # else:
+                #     self.errorGenerator() # If we encounter alphabets(Name error) or illegal characters(illegal character error)
 
             elif self.state == INT:
                 if z.match(currentChar) or d.match(currentChar):
@@ -143,28 +145,30 @@ class Lexer:
                     self.state = FLO_I
                 elif de.match(currentChar) or ws.match(currentChar) or op.match(currentChar)  or currentChar == '#':
                     lexeme = self.code[self.startPointer:self.searchPointer]
+                    self.state = START
                     if  lexeme in self.symbolTable:
-                        self.tokens.append(self.symbolTable.index(lexeme), lexeme) # Taking the index if 0 is already recorded in the table
+                        self.tokens.append((self.symbolTable.index(lexeme), lexeme)) # Taking the index if 0 is already recorded in the table
                     else:
-                        self.tokens.append(len(self.symbolTable), lexeme) # If it is the first time recording 0, then make a entry
-                        self.tokens.append(lexeme)
+                        self.tokens.append((len(self.symbolTable), lexeme)) # If it is the first time recording 0, then make a entry
+                        self.symbolTable.append(lexeme)
                     
                     # Processing the break character
                     if de.match(currentChar):
-                        self.tokens.append(self.symbolTable.index(currentChar), currentChar) # Adding the delimiter as a token into the list
+                        self.tokens.append((self.symbolTable.index(currentChar), currentChar)) # Adding the delimiter as a token into the list
+                        
                     elif op.match(currentChar):
                         self.state = OP
                     elif currentChar == '#':
                         self.state = CMT
                     self.startPointer = self.searchPointer + 1
                 else:
-                    self.errorGenerator() # If we encounter alphabets(Name error) or illegal characters(illegal character error)
+                    self.state = ERROR # If we encounter alphabets(Name error) or illegal characters(illegal character error)
             
             elif self.state == FLO_I:
                 if d.match(currentChar) or z.match(currentChar):
                     self.state = FLO
                 else:
-                    self.errorGenerator() 
+                    self.state = ERROR
                     # Here we call this because 234.x x being anything other can number can make a illegal float literal error while the adjecent lexeme can be valid
 
 
@@ -174,21 +178,22 @@ class Lexer:
                 elif de.match(currentChar) or ws.match(currentChar) or op.match(currentChar)  or currentChar == '#':
                     lexeme = self.code[self.startPointer:self.searchPointer]
                     if  lexeme in self.symbolTable:
-                        self.tokens.append(self.symbolTable.index(lexeme), lexeme) # Taking the index if 0 is already recorded in the table
+                        self.tokens.append((self.symbolTable.index(lexeme), lexeme)) # Taking the index if 0 is already recorded in the table
                     else:
-                        self.tokens.append(len(self.symbolTable), lexeme) # If it is the first time recording 0, then make a entry
-                        self.tokens.append(lexeme)
+                        self.tokens.append((len(self.symbolTable), lexeme)) # If it is the first time recording 0, then make a entry
+                        self.symbolTable.append(lexeme)
                     
                     # Processing the break character
                     if de.match(currentChar):
-                        self.tokens.append(self.symbolTable.index(currentChar), currentChar) # Adding the delimiter as a token into the list
+                        self.tokens.append((self.symbolTable.index(currentChar), currentChar)) # Adding the delimiter as a token into the list
+                        self.state = START
                     elif op.match(currentChar):
                         self.state = OP
                     elif currentChar == '#':
                         self.state = CMT
                     self.startPointer = self.searchPointer + 1
                 else:
-                    self.errorGenerator() # If we encounter alphabets(Name error) or illegal characters(illegal character error)
+                    self.state = ERROR # If we encounter alphabets(Name error) or illegal characters(illegal character error)
                 
             elif self.state == STR_I:
                 if q.match(currentChar):
@@ -200,21 +205,22 @@ class Lexer:
                 if de.match(currentChar) or ws.match(currentChar) or op.match(currentChar)  or currentChar == '#':
                     lexeme = self.code[self.startPointer:self.searchPointer]
                     if  lexeme in self.symbolTable:
-                        self.tokens.append(self.symbolTable.index(lexeme), lexeme) # Taking the index if 0 is already recorded in the table
+                        self.tokens.append((self.symbolTable.index(lexeme), lexeme)) # Taking the index if 0 is already recorded in the table
                     else:
-                        self.tokens.append(len(self.symbolTable), lexeme) # If it is the first time recording 0, then make a entry
-                        self.tokens.append(lexeme)
+                        self.tokens.append((len(self.symbolTable), lexeme)) # If it is the first time recording 0, then make a entry
+                        self.symbolTable.append(lexeme)
                     
                     # Processing the break character
                     if de.match(currentChar):
-                        self.tokens.append(self.symbolTable.index(currentChar), currentChar) # Adding the delimiter as a token into the list
+                        self.tokens.append((self.symbolTable.index(currentChar), currentChar)) # Adding the delimiter as a token into the list
+                        self.state = START
                     elif op.match(currentChar):
                         self.state = OP
                     elif currentChar == '#':
                         self.state = CMT
                     self.startPointer = self.searchPointer + 1
                 else:
-                    self.errorGenerator() # If we encounter alphabets(Name error) or illegal characters(illegal character error)
+                    self.state = ERROR # If we encounter alphabets(Name error) or illegal characters(illegal character error)
                 
 
             elif self.state == ID:
@@ -222,44 +228,54 @@ class Lexer:
                     self.state = ID
                 elif de.match(currentChar) or ws.match(currentChar) or op.match(currentChar)  or currentChar == '#':
                     lexeme = self.code[self.startPointer:self.searchPointer]
+                    self.state = START
                     if  lexeme in self.symbolTable:
-                        self.tokens.append(self.symbolTable.index(lexeme), lexeme) # Taking the index if 0 is already recorded in the table
+                        self.tokens.append((self.symbolTable.index(lexeme), lexeme)) # Taking the index if 0 is already recorded in the table
                     else:
-                        self.tokens.append(len(self.symbolTable), lexeme) # If it is the first time recording 0, then make a entry
-                        self.tokens.append(lexeme)
+                        self.tokens.append((len(self.symbolTable), lexeme)) # If it is the first time recording 0, then make a entry
+                        self.symbolTable.append(lexeme)
                     
                     # Processing the break character
                     if de.match(currentChar):
-                        self.tokens.append(self.symbolTable.index(currentChar), currentChar) # Adding the delimiter as a token into the list
+                        self.tokens.append((self.symbolTable.index(currentChar), currentChar)) # Adding the delimiter as a token into the list
+                        self.state = START
                     elif op.match(currentChar):
                         self.state = OP
                     elif currentChar == '#':
                         self.state = CMT
                     self.startPointer = self.searchPointer + 1
+                    if op.match(currentChar):
+                        self.startPointer = self.searchPointer
                 else:
-                    self.errorGenerator() # If we encounter illegal characters(illegal character error)
+                    self.state = ERROR # If we encounter illegal characters(illegal character error)
                 
             elif self.state == OP:
                 if op.match(currentChar):
                     self.state = OP
-                elif de.match(currentChar) or ws.match(currentChar) or currentChar == '#':
+                # elif de.match(currentChar) or ws.match(currentChar) or currentChar == '#' or a.match(currentChar) or d.match(currentChar) or z.match(currentChar):
+                elif ic.match(currentChar):
+                    self.state = ERROR
+                else:
                     lexeme = self.code[self.startPointer:self.searchPointer]
                     if  lexeme in self.symbolTable:
-                        self.tokens.append(self.symbolTable.index(lexeme), lexeme) # Taking the index if 0 is already recorded in the table
+                        self.tokens.append((self.symbolTable.index(lexeme), lexeme)) 
                     else:
-                        self.errorGenerator() # Operators are already defined in symbol table. If not present, then it is a invalid lexeme
-                    
+                        self.state = ERROR # Operators are already defined in symbol table. If not present, then it is a invalid lexeme
+                    self.state = START
                     # Processing the break character
                     if de.match(currentChar):
-                        self.tokens.append(self.symbolTable.index(currentChar), currentChar) # Adding the delimiter as a token into the list
-                    elif op.match(currentChar):
-                        self.state = OP
+                        self.tokens.append((self.symbolTable.index(currentChar), currentChar)) # Adding the delimiter as a token into the list
                     elif currentChar == '#':
                         self.state = CMT
+                    self.startPointer = self.searchPointer 
+                    self.searchPointer -= 1
+            
+            elif self.state == ERROR:
+                if de.match(currentChar):
+                    error_lexeme = self.code[self.startPointer:self.searchPointer]
+                    self.tokens.append(("INVALID LEXEME", error_lexeme))
                     self.startPointer = self.searchPointer + 1
-                else:
-                    self.errorGenerator() # If we encounter illegal characters(illegal character error)
-               
+                    self.state = START
             
             self.searchPointer += 1
 
@@ -267,7 +283,7 @@ class Lexer:
     # def processing(self):
     #     breakChar = self.code[self.searchPointer]
     #     if self.state == START:
-
+    
     #     elif self.state in [INT, FLO, ID, ZERO, STR, OP]:
     #         if op.match(breakChar) or de.match(breakChar) or ws.match(breakChar):
     #             self.tokens.append((self.symbolTable.index(breakChar), self.code[self.startPointer:self.searchPointer]))
@@ -285,4 +301,5 @@ if __name__ == "__main__":
     lexerInstance = Lexer(code)
     lexerInstance.lexer()
 
-    print(lexerInstance.tokens)
+    for token in lexerInstance.tokens:
+        print(token)
