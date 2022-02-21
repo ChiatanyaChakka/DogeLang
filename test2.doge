@@ -1,0 +1,25 @@
+#include<iostream>
+using namespace std;
+
+int main(){
+    int j[10];
+    int _i=100;
+    i=i+10;
+    i-=10;
+    //This is comment
+    /* 2 lines 
+    comment */
+    /*in line comment*/ i=(-10);
+    i=  -20;
+    i=+30;
+    i++;
+    i&&j;
+    char ch='\t';
+    ch='\\';
+    float f=1.2;
+    char c='123';
+    printf("Hello World");
+    char c[10]="";
+    cout<<"Hello world\n"<+endl;
+    return 0;
+}

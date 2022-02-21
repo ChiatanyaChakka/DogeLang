@@ -40,19 +40,13 @@ operators = ['+', '-', '/', '//', '*', '%',
              'and', 'or', 'not', 'xor',
              '==', '<=', '>=', '!=', '<', '>',
              '^', '|', '&', '~',
-             '=',
+             '+=', '-=', '*=', '/=', '%=', '=',
+             '++', '--',
              '?']
 delimiters = [';', ':', '{', '}', ',', '(', ')', '[', ']']
 whitespace = [' ', '\n', '\t']
 
 
-# class Token:
-#     def __init__(self, num, value):
-#         self.value = value
-#         self.num = num
-
-#     def __str__(self):
-#         return f"TOKEN<{self.num}, {self.value}>"
         
 # the lexer
 class Lexer:
@@ -61,23 +55,6 @@ class Lexer:
         self.searchPointer = 0
         self.tokens = []
         self.symbolTable = keywords+operators+delimiters
-        # self.symbolTable = {
-        #     "int": Token("KEYWORD", "int"),
-        #     "float": Token("KEYWORD", "float"),
-        #     "bool": Token("KEYWORD", "bool"),
-        #     "string": Token("KEYWORD", "string"),
-        #     "while": Token("KEYWORD", "while"),
-        #     "for": Token("KEYWORD", "for"),
-        #     "if": Token("KEYWORD", "if"),
-        #     "else": Token("KEYWORD", "else"),
-        #     "switch": Token("KEYWORD", "switch"),
-        #     "default": Token("KEYWORD", "default"),
-        #     "to": Token("KEYWORD", "to"),
-        #     "in": Token("KEYWORD", "in"),
-        #     "true": Token("KEYWORD", "true"),
-        #     "false": Token("KEYWORD", "false"),
-        #     "+": Token("PLUS_OP", "+"),
-        #     }
         self.state = START
         self.code = code
     
@@ -218,7 +195,10 @@ class Lexer:
                         self.state = OP
                     elif currentChar == '#':
                         self.state = CMT
-                    self.startPointer = self.searchPointer + 1
+                    if op.match(currentChar):
+                        self.startPointer = self.searchPointer
+                    else:
+                        self.startPointer = self.searchPointer + 1
                 else:
                     self.state = ERROR # If we encounter alphabets(Name error) or illegal characters(illegal character error)
                 
@@ -252,43 +232,36 @@ class Lexer:
             elif self.state == OP:
                 if op.match(currentChar):
                     self.state = OP
-                # elif de.match(currentChar) or ws.match(currentChar) or currentChar == '#' or a.match(currentChar) or d.match(currentChar) or z.match(currentChar):
                 elif ic.match(currentChar):
                     self.state = ERROR
                 else:
                     lexeme = self.code[self.startPointer:self.searchPointer]
+                    self.state = START
                     if  lexeme in self.symbolTable:
                         self.tokens.append((self.symbolTable.index(lexeme), lexeme)) 
                     else:
-                        self.state = ERROR # Operators are already defined in symbol table. If not present, then it is a invalid lexeme
-                    self.state = START
-                    # Processing the break character
-                    if de.match(currentChar):
-                        self.tokens.append((self.symbolTable.index(currentChar), currentChar)) # Adding the delimiter as a token into the list
-                    elif currentChar == '#':
+                        i = 0
+                        while i < len(lexeme):
+                            if lexeme[i:i+2] in operators:
+                                self.tokens.append((self.symbolTable.index(lexeme[i:i+2]), lexeme[i:i+2]))
+                                i += 2
+                            else:
+                                self.tokens.append((self.symbolTable.index(lexeme[i]), lexeme[i]))
+                                i += 1
+                        
+                    if currentChar == '#':
                         self.state = CMT
-                    self.startPointer = self.searchPointer 
+                    self.startPointer = self.searchPointer
                     self.searchPointer -= 1
             
             elif self.state == ERROR:
-                if de.match(currentChar):
-                    error_lexeme = self.code[self.startPointer:self.searchPointer]
+                if currentChar == ';' or currentChar == '\n':
+                    error_lexeme = self.code[self.startPointer:self.searchPointer+1]
                     self.tokens.append(("INVALID LEXEME", error_lexeme))
                     self.startPointer = self.searchPointer + 1
                     self.state = START
             
             self.searchPointer += 1
-
-    # processing the input when input does not match the required regex
-    # def processing(self):
-    #     breakChar = self.code[self.searchPointer]
-    #     if self.state == START:
-    
-    #     elif self.state in [INT, FLO, ID, ZERO, STR, OP]:
-    #         if op.match(breakChar) or de.match(breakChar) or ws.match(breakChar):
-    #             self.tokens.append((self.symbolTable.index(breakChar), self.code[self.startPointer:self.searchPointer]))
-    #     else:
-    #         self.errorGenerator()
     
     def errorGenerator(self):
         pass
