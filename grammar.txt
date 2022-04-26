@@ -1,0 +1,19 @@
+<STMTS> -> <STMT>|<STMT><STMTS>
+<STMT> -> <DECL>|<ASSIGN>|<CONDITIONAL>|<LOOP>
+<DECL> -> <TYPE> <ID_LIST>;
+<ID_LIST> -> id | id, <ID_LIST>;
+<TYPE> -> int | float | char
+<ASSIGN> -> id = <EXPR>;
+<EXPR> -> number | id | <EXPR> <bOP> <EXPR>; | <uOP> <EXPR>;
+
+<bOP> -> +|-|/|//|*|%|and|or|xor|==|<=|>=|!=|<|>|^|||&|+=|-=|*=|/=|%=|?
+<uOP> -> not|~|++|--
+
+<CONDITIONAL> -> if <CONDITIONAL-STMTS>
+<CONDITIONAL-STMTS> -> {<CONDITION>:<STMTS>}<CONDITIONAL-STMTS> | E
+<CONDITION> -> <EXPR> | else
+
+<LOOP> -> <FOR>|<WHILE>|<DO-WHILE>
+<WHILE> -> while(<EXPR>){<STMTS>}
+<FOR> -> for(<EXPR>;<EXPR>;<EXPR>){<STMTS>}
+<DO-WHILE> -> do{<STMTS>}while(<EXPR>)
