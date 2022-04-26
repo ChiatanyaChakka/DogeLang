@@ -1,19 +1,34 @@
-<STMTS> -> <STMT>|<STMT><STMTS>
-<STMT> -> <DECL>|<ASSIGN>|<CONDITIONAL>|<LOOP>
-<DECL> -> <TYPE> <ID_LIST>;
-<ID_LIST> -> id | id, <ID_LIST>;
-<TYPE> -> int | float | char
-<ASSIGN> -> id = <EXPR>;
-<EXPR> -> number | id | <EXPR> <bOP> <EXPR>; | <uOP> <EXPR>;
-
-<bOP> -> +|-|/|//|*|%|and|or|xor|==|<=|>=|!=|<|>|^|||&|+=|-=|*=|/=|%=|?
-<uOP> -> not|~|++|--
-
-<CONDITIONAL> -> if <CONDITIONAL-STMTS>
-<CONDITIONAL-STMTS> -> {<CONDITION>:<STMTS>}<CONDITIONAL-STMTS> | E
-<CONDITION> -> <EXPR> | else
-
-<LOOP> -> <FOR>|<WHILE>|<DO-WHILE>
-<WHILE> -> while(<EXPR>){<STMTS>}
-<FOR> -> for(<EXPR>;<EXPR>;<EXPR>){<STMTS>}
-<DO-WHILE> -> do{<STMTS>}while(<EXPR>)
+STMTS -> STMT STMTS
+STMTS -> ''
+STMT -> DECL
+STMT -> ASSIGN
+STMT -> CONDITIONAL
+STMT -> LOOP
+DECL -> TYPE ID_LIST ;
+ID_LIST -> id
+ID_LIST -> id , ID_LIST ;
+TYPE -> int
+TYPE -> float
+TYPE -> char
+ASSIGN -> id = EXPR ;
+EXPR -> number EXPA
+EXPR -> id EXPA
+EXPR -> uop EXPR EXPA
+EXPA -> bop EXPR EXPA
+EXPA -> ''
+CONDITIONAL -> if CONDITIONAL-STMTS
+CONDITIONAL-STMTS -> { CONDITION : STMTS } CONDITIONAL-STMTS
+CONDITIONAL-STMTS -> ''
+CONDITION -> EXPR
+CONDITION -> else
+SWITCH -> switch { SWITCH-STMTS }
+SWITCH-STMTS -> SWITCH-VALUE : STMTS , SWITCH-STMTS
+SWITCH-STMTS -> ''
+SWITCH-VALUE -> EXPR
+SWITCH-VALUE -> default
+LOOP -> FOR
+LOOP -> WHILE
+LOOP -> DO-WHILE
+WHILE -> while ( EXPR ) { STMTS }
+FOR -> for ( EXPR ; EXPR ; EXPR ) { STMTS }
+DO-WHILE -> do { STMTS } while ( EXPR )
