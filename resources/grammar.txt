@@ -5,8 +5,9 @@ STMT -> ASSIGN
 STMT -> CONDITIONAL
 STMT -> LOOP
 DECL -> TYPE ID_LIST ;
-ID_LIST -> id
-ID_LIST -> id , ID_LIST ;
+ID_LIST -> id ID_LISTA
+ID_LISTA -> , id ID_LISTA
+ID_LISTA -> ''
 TYPE -> int
 TYPE -> float
 TYPE -> char

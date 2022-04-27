@@ -35,7 +35,14 @@ ERROR = "error_state"
 # Reserved items for symbol table
 keywords = ['int', 'float', 'boolean', 'string',
             'while', 'for', 'if', 'else', 'switch', 'to', 'default',
-            'in', 'true', 'false']
+            'in', 'true', 'false', '=']
+bops = ['+', '-', '/', '//', '*', '%',
+             'and', 'or', 'xor',
+             '==', '<=', '>=', '!=', '<', '>',
+             '^', '|', '&',
+             '+=', '-=', '*=', '/=', '%=',
+             '?']
+uops = ['++', '--', 'not', '~']
 operators = ['+', '-', '/', '//', '*', '%',
              'and', 'or', 'not', 'xor',
              '==', '<=', '>=', '!=', '<', '>',
@@ -265,14 +272,3 @@ class Lexer:
     
     def errorGenerator(self):
         pass
-    
-# Parser
-if __name__ == "__main__":
-    path = sys.argv[1]
-    file = open(path, 'r')
-    code = file.read()
-    lexerInstance = Lexer(code)
-    lexerInstance.lexer()
-
-    for token in lexerInstance.tokens:
-        print(token)
