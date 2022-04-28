@@ -1,2 +1,16 @@
-int a;
-a=b;
+int main()
+{
+    int a;
+    a=1000000;
+    if
+    {
+        a>b:
+        int b;
+        b=10;
+    }
+    {
+        a<b:
+        int b;
+        b=11;
+    }
+}

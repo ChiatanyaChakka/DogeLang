@@ -35,7 +35,7 @@ ERROR = "error_state"
 # Reserved items for symbol table
 keywords = ['int', 'float', 'boolean', 'string',
             'while', 'for', 'if', 'else', 'switch', 'to', 'default',
-            'in', 'true', 'false', '=']
+            'in', 'true', 'false', '=', 'fn', 'do']
 bops = ['+', '-', '/', '//', '*', '%',
              'and', 'or', 'xor',
              '==', '<=', '>=', '!=', '<', '>',

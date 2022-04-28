@@ -1,16 +1,23 @@
-int fact( int n) {
-if (n <= 1)
-return 1;
-else
-return n*fact(n-1);
-}
-void main(void) {
-int x;
-x = 1;
-while (x <= 10) {
-write(x);
-write(fact(x));
-writeln();
-x = x + 1;
-}
+int main()
+{
+    int a;
+    a=1000000;
+    int i;
+    int a;
+    a=10;
+    switch a
+    {
+    1:
+        int b;
+        b=a;
+        a=11;
+    ,
+    10:
+        int c;
+        c=a;
+        a=11;
+    ,
+    default:
+        int c;
+    }
 }

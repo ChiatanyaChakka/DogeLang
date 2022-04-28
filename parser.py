@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # print(parse_table_df)
 
     # base node of parse tree
-    baseNode = Node(nodeType='non-terminal', value='STMTS')
+    baseNode = Node(nodeType='non-terminal', value='PROGRAM')
 
     # stack and input tape for the parser
     stack = [Node(nodeType='terminal', value='$'), baseNode]
@@ -64,8 +64,11 @@ if __name__ == "__main__":
             input_tape.append('bop')
         elif token[1] in uops:
             input_tape.append('uop')
+        elif token[1].isnumeric():
+            input_tape.append('number')
         elif token[1] in lexerInstance.symbolTable:
             input_tape.append('id')
+
 
     input_tape.append('$')
 
