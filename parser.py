@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     # list terminals and non-terminals
     terminals = parse_table_df.columns
-    non_terminals = parse_table_df.index
+    non_terminals = parse_table_df.index.dropna()
 
     # enumerating the grammar rules for parse table
     for nt in non_terminals:
@@ -44,7 +44,26 @@ if __name__ == "__main__":
             if not isinstance(parse_table_df[t][nt], str):
                 parse_table_df[t][nt] = -1
             else:
-                parse_table_df[t][nt] = grammar_string.index(parse_table_df[t][nt])
+                parse_table_df[t][nt] = grammar_string.index(
+                    parse_table_df[t][nt])
+    # print(parse_table_df)
+
+    # Modification of parse table to handle errors
+    follow_sets_df = pd.read_excel("./resources/followSets.xlsx")
+    follow_sets_df.set_index('Nonterminal', inplace=True)
+
+    # print(follow_sets_df)
+    for nt in non_terminals:
+        follow_set_string = follow_sets_df['FOLLOW'][nt][1:-1]
+        follow_set = follow_set_string.split(",")
+        if follow_set_string[-1] == ',' or follow_set_string[0] == ',':
+            follow_set.append(',')
+        follow_set = [item for item in follow_set if item != '']
+
+        for t in follow_set:
+            if parse_table_df[t][nt] == -1:
+                parse_table_df[t][nt] = -2
+
     # print(parse_table_df)
 
     # base node of parse tree
@@ -69,30 +88,36 @@ if __name__ == "__main__":
         elif token[1] in lexerInstance.symbolTable:
             input_tape.append('id')
 
-
     input_tape.append('$')
 
     # print(f'length of input tape: {len(input_tape)}')
     # print(f'input tape: {input_tape}')
-
+    errorFlag = 0
     print(f'input tape: {input_tape}\nstack: {stack}\n---')
     print('\t\tPARSING PROCESS:')
     # parsing the input tape
     while len(input_tape) != 0:
         if stack[-1].value in terminals:
-            print('stack top matched with input')
+            print('stack top is a terminal')
             if stack[-1].value == input_tape[0]:
                 stack.pop()
                 input_tape.pop(0)
             else:
-                print('error: non-matching terminals')
-                break;
+                print('Error: non-matching terminals')
+                errorFlag += 1
+                stack.pop()
         else:
             rule = parse_table_df[input_tape[0]][stack[-1].value]
             print(f'reducing non-terminal')
-            if rule == -1:
-                print('error: grammar not defined')
-                break;
+            if rule < 0:
+                print('Error: ', end="")
+                errorFlag += 1
+                if rule == -1:
+                    input_tape.pop(0)
+                    print("Skipping a token in input")
+                else:
+                    stack.pop()
+                    print("Popping the stack.")
             else:
                 print(f'rule used: {grammar_string[rule]}')
                 if grammar[rule][1] == "''":
@@ -102,15 +127,19 @@ if __name__ == "__main__":
                     stack_append = []
                     for value in children:
                         if value in terminals:
-                            stack_append.append(Node(nodeType='terminal', value=value))
+                            stack_append.append(
+                                Node(nodeType='terminal', value=value))
                         elif value in non_terminals:
-                            stack_append.append(Node(nodeType='non-terminal', value=value))
+                            stack_append.append(
+                                Node(nodeType='non-terminal', value=value))
                     stack[-1].children = stack_append
                     stack = stack[:-1] + stack_append[::-1]
         print(f'input tape: {input_tape}\nstack: {stack}\n---')
 
-    if (len(stack) == 0) and (len(input_tape) == 0) :
+    if (len(stack) == 0) and (len(input_tape) == 0) and errorFlag == 0:
         print('parsing complete. string accepted.\n---')
+    else:
+        print("Errors encountered ")
 
     # print the parse tree
     print('\t\tPARSE TREE:')
