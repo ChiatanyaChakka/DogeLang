@@ -1,4 +1,4 @@
-# Syntax for Doge Language:
+# Syntax Examples for Doge Language:
 ---
 
 ## declaration:
